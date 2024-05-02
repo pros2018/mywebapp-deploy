@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mywebapp-deployment
+  labels:
+    app: mywebapp
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mywebapp
+  template:
+    metadata:
+      labels:
+        app: mywebapp
+    spec:
+      containers:
+      - name: mywebapp
+        image: pros2018/mywebapp:latest
+        ports:
+        - containerPort: 7001
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: mywebapp-rollout
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mywebapp
+  strategy:
+    blueGreen:
+      activeService: mywebapp-service
+      previewService: mywebapp-preview-service
+      autoPromotionEnabled: true
+  template:
+    metadata:
+      labels:
+        app: mywebapp
+    spec:
+      containers:
+      - name: mywebapp
+        image: pros2018/mywebapp:latest
+        ports:
+        - containerPort: 7001
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mywebapp-service
+  namespace: default
+spec:
+  type: NodePort
+  ports:
+  - protocol: TCP
+    port: 7001
+    targetPort: 7001
+    nodePort: 31001   # Specify the desired node port here
+  selector:
+    app: mywebapp
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mywebapp-preview-service
+  namespace: default
+spec:
+  ports:
+  - protocol: TCP
+    port: 7001
+    targetPort: 7001
+  selector:
+    app: mywebapp

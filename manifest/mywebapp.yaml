@@ -19,7 +19,7 @@ spec:
       - name: mywebapp
         image: pros2018/mywebapp:latest
         ports:
-        - containerPort: 7001
+        - containerPort: 7002
 
 ---
 apiVersion: argoproj.io/v1alpha1
